@@ -140,7 +140,7 @@
     "vanillajs-datepicker": "1.3.4"
   },
   "peerDependencies": {
-    "tods-competition-factory": "^7.43.0",
+    "tods-competition-factory": "^7.44.0",
     "leaflet": "^1.9.4"
   },
   "peerDependenciesMeta": {

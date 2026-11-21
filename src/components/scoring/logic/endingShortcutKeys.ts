@@ -8,7 +8,7 @@
  * for is currently offered. Those are covered by `ScoreEntryEndingShortcutTests.stories.ts`, in
  * Chromium, with real key presses.
  */
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants } from 'tods-competition-factory/constants';
 
 import type { EndingIntent } from './scoreEntryModel';
 import type { SideNumber } from './scoreEntryState';
