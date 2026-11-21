@@ -1,5 +1,14 @@
 # Changelog
 
+## [7.21.1](https://github.com/CourtHive/courthive-components/compare/v7.21.0...v7.21.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **categories:** a category name may be as short as its code (U9, MS) ([#1056](https://github.com/CourtHive/courthive-components/issues/1056)) ([02060a7](https://github.com/CourtHive/courthive-components/commit/02060a7494bf7a5c64133c079e8e5d6985aba13f))
+* **deps:** update tods-competition-factory to 7.44.0 ([#1057](https://github.com/CourtHive/courthive-components/issues/1057)) ([b092c7c](https://github.com/CourtHive/courthive-components/commit/b092c7c41655242786e2a601e444c82fd1258e20))
+* **scoring:** score entry reads the published factory constants subpath; requires factory 7.44.0 ([#1058](https://github.com/CourtHive/courthive-components/issues/1058)) ([7d82de4](https://github.com/CourtHive/courthive-components/commit/7d82de4eb54304c35a05640fb158bfb1b2acd770))
+
 ## [7.21.0](https://github.com/CourtHive/courthive-components/compare/v7.20.0...v7.21.0) (2026-11-20)
 
 
