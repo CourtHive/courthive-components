@@ -12,8 +12,9 @@
  * - Support incomplete scores (user typing in real-time)
  */
 
-import { matchUpFormatCode, matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
 import { overtimeDeciderSetNumber, overtimeProgress } from '../overtimeEntry/overtimeEntry';
+import { matchUpStatusConstants } from 'tods-competition-factory/constants';
+import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
 
 // ParsedFormat is declared but not exported from tods-competition-factory
 // Define locally to avoid import error
