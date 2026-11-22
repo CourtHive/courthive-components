@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.22.0](https://github.com/CourtHive/courthive-components/compare/v7.21.1...v7.22.0) (2026-11-22)
+
+
+### Features
+
+* share match cards across catalog and operator views ([#1061](https://github.com/CourtHive/courthive-components/issues/1061)) ([ad4fcd7](https://github.com/CourtHive/courthive-components/commit/ad4fcd79e96b862db85ca9b68c7993d3cf8b67f1))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.45.0 ([#1065](https://github.com/CourtHive/courthive-components/issues/1065)) ([d06e31d](https://github.com/CourtHive/courthive-components/commit/d06e31df4d348fc37d98d8aee956d50b2cf6ad00))
+
 ## [7.21.1](https://github.com/CourtHive/courthive-components/compare/v7.21.0...v7.21.1) (2026-11-21)
 
 
