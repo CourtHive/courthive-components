@@ -129,7 +129,9 @@ jobs:
       # Storybook 10 and so ran in no workflow; story assertions now gate PRs.
       - name: Install Chromium for the story tests
         if: steps.scope.outputs.light != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm verify:catalog "HEAD^1"
+        if: steps.scope.outputs.light != 'true'
       - run: pnpm test:stories
         if: steps.scope.outputs.light != 'true'
 
@@ -143,6 +145,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - uses: pnpm/action-setup@v6
 
@@ -161,7 +165,8 @@ jobs:
       - run: pnpm build
       - run: pnpm verify:consumer-bundle
       - run: pnpm test
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm verify:catalog "HEAD^1"
       - run: pnpm test:stories
 
       - name: Explain a failure
