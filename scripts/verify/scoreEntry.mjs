@@ -229,7 +229,7 @@ async function verifyPacked(componentsTarball, factoryTarball) {
     );
     writeFileSync(
       join(consumer, 'pnpm-workspace.yaml'),
-      'packages: [.]\nallowBuilds: {}\nautoInstallPeers: false\nminimumReleaseAge: 1440\n'
+      'packages: [.]\nallowBuilds: {}\nautoInstallPeers: false\nminimumReleaseAge: 1440\nminimumReleaseAgeExclude: [tods-competition-factory]\n'
     );
     execFileSync('pnpm', ['install', '--ignore-scripts'], { cwd: consumer, stdio: 'pipe', timeout: 120_000 });
     compileConsumer(consumer);
