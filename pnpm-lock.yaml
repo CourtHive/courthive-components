@@ -173,7 +173,7 @@ settings:
 
 overrides:
   typescript: 6.0.3
-  tods-competition-factory: link:../factory
+  tods-competition-factory: link:../factory/packages/competition-factory
   fast-uri: ^4.1.3
 
 importers:
@@ -323,8 +323,8 @@ importers:
         specifier: 6.7.1
         version: 6.7.1
       tods-competition-factory:
-        specifier: link:../factory
-        version: link:../factory
+        specifier: link:../factory/packages/competition-factory
+        version: link:../factory/packages/competition-factory
       typescript:
         specifier: 6.0.3
         version: 6.0.3
