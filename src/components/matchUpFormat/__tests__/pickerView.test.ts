@@ -8,7 +8,7 @@
  * can show (a control disabled or hidden on screen, the footer reporting, one picker's state not
  * reaching the next) is in `src/stories/MatchUpFormatPickerTests.stories.ts`.
  */
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 import { controlView, editForControl, segmentOf } from '../machine/controls';
@@ -72,7 +72,7 @@ function picker(matchUpFormat: string, config?: MatchUpFormatConfig) {
 
 const expectParses = (code: string) => {
   expect(code).not.toBe('');
-  expect(matchUpFormatCode.parse(code), code).toBeTruthy();
+  expect(tools.formats.parse(code), code).toBeTruthy();
 };
 
 describe('opening a format', () => {

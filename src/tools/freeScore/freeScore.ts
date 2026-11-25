@@ -14,7 +14,13 @@
 
 import { overtimeDeciderSetNumber, overtimeProgress } from '../overtimeEntry/overtimeEntry';
 import { matchUpStatusConstants } from 'tods-competition-factory/constants';
-import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
+import {
+  parseMatchUpFormat,
+  stringifyMatchUpFormat,
+  finalSetGoverns,
+  aggregateDeciderSetNumber,
+  checkSetIsComplete
+} from 'tods-competition-factory/score-entry-state';
 
 // ParsedFormat is declared but not exported from tods-competition-factory
 // Define locally to avoid import error
@@ -200,7 +206,7 @@ function detectIrregularEnding(input: string, startPos: number): { ending?: stri
 function getSetFormat(parsedFormat: ParsedFormat, setIndex: number): any {
   const bestOf = parsedFormat.bestOf || 3;
   // Last possible set; an aggregate format's decider is set N + 1 instead (factory #5166)
-  const isDecidingSet = matchUpFormatCode.finalSetGoverns(parsedFormat, setIndex + 1, setIndex === bestOf - 1);
+  const isDecidingSet = finalSetGoverns(parsedFormat, setIndex + 1, setIndex === bestOf - 1);
 
   if (isDecidingSet && parsedFormat.finalSetFormat) {
     return parsedFormat.finalSetFormat;
@@ -301,7 +307,7 @@ function shouldEnterTiebreak(side1: number, side2: number, setFormat: any): bool
  * Delegated to the factory, which reads the margin, a declared winBy and the tiebreak games from the format.
  */
 function isSetComplete(side1: number, side2: number, setFormat: any): boolean {
-  const complete = scoreGovernor.checkSetIsComplete({
+  const complete = checkSetIsComplete({
     set: { side1Score: side1, side2Score: side2 },
     matchUpScoringFormat: { setFormat },
     ignoreTiebreak: true
@@ -608,7 +614,7 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
   const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak;
 
   // Where the TB sits: set N + 1 for an aggregate exactly format, otherwise the last of the N
-  const deciderSetNumber = conditionalFinalTB ? matchUpFormatCode.aggregateDeciderSetNumber(parsedFormat) : undefined;
+  const deciderSetNumber = conditionalFinalTB ? aggregateDeciderSetNumber(parsedFormat) : undefined;
   const finalSetNumber = deciderSetNumber ?? expectedSetCount;
   const timedSetsCount = conditionalFinalTB && !deciderSetNumber ? expectedSetCount - 1 : expectedSetCount;
 
@@ -658,7 +664,7 @@ function parseTimedExactlyScore(input: string, parsedFormat: ParsedFormat): Pars
  * shootout decider is its tally.
  */
 function parseOvertimeScore(input: string, parsedFormat: ParsedFormat): ParseResult {
-  const matchUpFormat = matchUpFormatCode.stringify(parsedFormat);
+  const matchUpFormat = stringifyMatchUpFormat(parsedFormat);
   const trimmedInput = input.trim();
   const regulation = parsedFormat.exactly || parsedFormat.bestOf || 1;
   if (!trimmedInput) return createEmptyTimedExactlyResult(false, regulation, regulation);
@@ -702,7 +708,7 @@ function parseOvertimeScore(input: string, parsedFormat: ParsedFormat): ParseRes
  */
 export function parseScore(input: string, matchUpFormat: string | ParsedFormat): ParseResult {
   // Parse format if string provided
-  const parsedFormat = typeof matchUpFormat === 'string' ? matchUpFormatCode.parse(matchUpFormat) : matchUpFormat;
+  const parsedFormat = typeof matchUpFormat === 'string' ? parseMatchUpFormat(matchUpFormat) : matchUpFormat;
 
   if (!parsedFormat) {
     return {

@@ -16,7 +16,7 @@
  */
 import { isComplete, winningSide, columns, error } from '../scoreEntrySelectors';
 import { createScoreEntryModel, typeDigit, setCell } from '../scoreEntryModel';
-import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
+import { scoreGovernor, tools } from 'tods-competition-factory';
 import { deepFreeze, G } from './scoreEntryModelTestHelpers';
 import { describe, it, expect } from 'vitest';
 
@@ -87,7 +87,7 @@ describe.each([
   { matchUpFormat: 'SET3-S:6/TB7', setsToWin: 2, alphabet: ['W1', 'W2', 'I', 'P', 'E'] as Token[] },
   { matchUpFormat: 'SET5-S:6/TB7', setsToWin: 3, alphabet: ['W1', 'W2', 'I', 'E'] as Token[] }
 ])('every sequence of set outcomes under $matchUpFormat', ({ matchUpFormat, setsToWin, alphabet }) => {
-  const count = matchUpFormatCode.parse(matchUpFormat)?.bestOf as number;
+  const count = tools.formats.parse(matchUpFormat)?.bestOf as number;
   const cases = sequences(alphabet, count);
 
   it(`enumerates ${cases.length} sequences`, () => {
@@ -183,7 +183,7 @@ describe("the digit ceiling is the factory's, for every opponent score and every
   const currents = [undefined, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   it.each(formats)('%s', (matchUpFormat) => {
-    const setFormat = matchUpFormatCode.parse(matchUpFormat)?.setFormat as any;
+    const setFormat = tools.formats.parse(matchUpFormat)?.setFormat as any;
     expect(setFormat, 'the format must parse, or the fallback is being measured').toBeDefined();
     let accepted = 0;
 

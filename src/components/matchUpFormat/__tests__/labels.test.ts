@@ -6,7 +6,7 @@
  * and requires every text the picker shows to be either translated or a bare value. An English string
  * that is not read from the labels, now or added later, fails it by name.
  */
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 import { deriveView, DEFAULT_LABELS } from '../machine/view';
@@ -18,7 +18,7 @@ import corpus from './roundTripCorpus.json';
 import type { ControlView, EditorView, SegmentView } from '../machine/view';
 import type { EditorState } from '../machine/types';
 
-const codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.stringify };
+const codec = { parse: tools.formats.parse, stringify: tools.formats.stringify };
 const CLICKABLE = '▾';
 const STANDARD = 'SET3-S:6/TB7';
 

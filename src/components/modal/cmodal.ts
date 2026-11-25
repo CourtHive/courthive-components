@@ -1,3 +1,4 @@
+import './cmodal.css';
 import { listenForOutsideClick } from '../../helpers/outsideClick';
 import { anchorModalPopups } from './anchorModalPopups';
 import { focusFirstControl } from './focusFirstControl';
