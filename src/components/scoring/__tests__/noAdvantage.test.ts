@@ -4,7 +4,7 @@
  * ── What was wrong ──
  *
  * `SetFormat` in `logic/dynamicSetsLogic.ts` is a hand-written mirror of what
- * `matchUpFormatCode.parse` emits, and it called the no-advantage flag `noAd` while the factory emits
+ * `tools.formats.parse` emits, and it called the no-advantage flag `noAd` while the factory emits
  * **`NoAD`**. Every read of `.noAd` in that module therefore answered `undefined` for every format,
  * and the TYPE is what made those reads look correct. Nothing threw; no-advantage was simply ignored.
  *
@@ -18,7 +18,7 @@
  * keeps agreeing if the engine's rule ever changes. The literal is stated in the comment so a reader
  * can see what is meant without running anything.
  */
-import { matchUpFormatCode, scoreGovernor } from 'tods-competition-factory';
+import { scoreGovernor, tools } from 'tods-competition-factory';
 import { completeTiebreakOnly } from '../logic/tiebreakEntry';
 import { describe, it, expect } from 'vitest';
 import {
@@ -161,7 +161,7 @@ describe('a no-advantage MATCH tiebreak', () => {
   it('agrees with what the format string itself declares', () => {
     // A control on the FIXTURE rather than on the code: if `SET1-S:TB10NOAD` ever stopped parsing to a
     // no-ad tiebreak, every assertion above would pass while testing the wrong format.
-    const parsed: any = matchUpFormatCode.parse(MATCH_TIEBREAK_NOAD);
+    const parsed: any = tools.formats.parse(MATCH_TIEBREAK_NOAD);
 
     expect(parsed?.setFormat?.tiebreakSet?.NoAD).toBe(true);
   });

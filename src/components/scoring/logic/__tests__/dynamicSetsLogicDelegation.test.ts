@@ -1,5 +1,5 @@
 import { getMaxAllowedScore, isSetComplete } from '../dynamicSetsLogic';
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 import type { MatchUpConfig } from '../dynamicSetsLogic';
@@ -9,7 +9,7 @@ const S5_WB1 = 'SET1-S:5WB1';
 const S6_ADVANTAGE = 'SET1-S:6';
 const S6_TB7 = 'SET3-S:6/TB7';
 const S8_TB7 = 'SET1-S:8/TB7';
-const cfg = (format: string): MatchUpConfig => matchUpFormatCode.parse(format) as unknown as MatchUpConfig;
+const cfg = (format: string): MatchUpConfig => tools.formats.parse(format) as unknown as MatchUpConfig;
 const max = (format: string, opp: number) => getMaxAllowedScore(0, 1, { side1: 0, side2: opp }, cfg(format));
 
 describe('getMaxAllowedScore delegates to the factory', () => {

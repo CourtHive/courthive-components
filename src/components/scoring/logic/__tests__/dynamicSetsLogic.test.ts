@@ -4,8 +4,7 @@
  */
 
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
-import { matchUpFormatCode } from 'tods-competition-factory';
-import { scoreGovernor } from 'tods-competition-factory';
+import { scoreGovernor, tools } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 import type { SetScore } from '../../types';
 import {
@@ -27,7 +26,7 @@ import {
 
 // Helper to create MatchUpConfig from format string
 function parseFormat(formatString: string): MatchUpConfig {
-  const parsed = matchUpFormatCode.parse(formatString);
+  const parsed = tools.formats.parse(formatString);
   const regex = /SET(\d+)/;
   const bestOfMatch = regex.exec(formatString);
   const bestOf = bestOfMatch ? Number.parseInt(bestOfMatch[1]) : 3;
@@ -57,7 +56,7 @@ const FINAL_TB10 = 'SET3-S:6/TB7-F:TB10';
  * `matchUpConfigFor` — the derivation `dynamicSetsApproach` already carried its own copy of.
  *
  * It takes TWO readings and they must agree: `bestOf` resolves an `exactly:N` format down to a set
- * count, while `exactly`, `setFormat` and `finalSetFormat` come straight off `matchUpFormatCode.parse`. Hoisted so a region does not become a second copy whose
+ * count, while `exactly`, `setFormat` and `finalSetFormat` come straight off `tools.formats.parse`. Hoisted so a region does not become a second copy whose
  * halves can drift apart.
  */
 describe('matchUpConfigFor', () => {
@@ -943,7 +942,7 @@ describe('match completeness delegates to analyzeMatchUp', () => {
     // The alternative was synthesising a plausible format and reading only the field that does not depend
     // on the invented parts — which works until someone reads another field.
     for (const format of ['SET3-S:6/TB7', FINAL_TB10, 'SET1-S:TB10', 'SET5-S:6/TB7', 'SET1-S:5WB1']) {
-      expect(scoreGovernor.stringifyMatchUpFormat(matchUpConfigFor(format) as any), format).toBe(format);
+      expect(tools.formats.stringify(matchUpConfigFor(format) as any), format).toBe(format);
     }
   });
 });

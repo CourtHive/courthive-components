@@ -14,7 +14,7 @@
 
 import { getSetFormatForIndex, matchUpConfigFor } from '../dynamicSetsLogic';
 import { MATCH_FORMATS } from '../../../../constants/matchUpFormats';
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { describe, it, expect } from 'vitest';
 
 /**
@@ -22,7 +22,7 @@ import { describe, it, expect } from 'vitest';
  * This function determines which format to use for a specific set index.
  */
 function getSetFormat(setIndex: number, matchUpFormat: string, bestOf: number) {
-  const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
+  const parsedFormat = tools.formats.parse(matchUpFormat);
   const isDecidingSet = bestOf === 1 || setIndex + 1 === bestOf;
 
   // Use finalSetFormat for deciding set if it exists
