@@ -1,7 +1,7 @@
 /**
  * The picker's state machine, without a DOM: codes in, codes out, and every transition rule once.
  */
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 import { fromCode, selectedCode, toCode } from '../machine/codec';
@@ -13,7 +13,7 @@ import corpus from './roundTripCorpus.json';
 // constants and types
 import type { Capabilities, Edit, EditorState } from '../machine/types';
 
-const codec = { parse: matchUpFormatCode.parse, stringify: matchUpFormatCode.stringify };
+const codec = { parse: tools.formats.parse, stringify: tools.formats.stringify };
 const STANDARD = 'SET3-S:6/TB7';
 const TIMED_POINTS = 'SET3-S:T10P';
 const TIME_LIMITED = 'SET3-S:6/TB7-M:T60';
