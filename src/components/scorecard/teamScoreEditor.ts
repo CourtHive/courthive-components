@@ -1,6 +1,6 @@
 /**
  * Setting a dual's team score by hand, inline in the scorecard header. Override turns the two header scores into
- * fields; the higher score wins, and level scores show a winner choice. Save hands back the score by side number (for
+ * fields; the higher score wins, and level scores show a winner choice and how the winner was decided. Save hands back the score by side number (for
  * the caller to record with automatic team scoring off); Cancel puts the header back. The controls sit in their own
  * row under the names and scores, and the open editor replaces them there. While the score is set by hand
  * the header says so, and Restore hands the dual back to automatic scoring.
@@ -9,6 +9,8 @@
  */
 import {
   createTeamScoreOverride,
+  DECISION_METHODS,
+  type DecisionMethod,
   type Position,
   type TeamScore,
   type TeamScoreOverride
@@ -26,6 +28,12 @@ export interface TeamScoreOptions {
 
 const INPUT_CLASS = 'chc-scorecard-score-input';
 const POSITIONS: Position[] = ['left', 'right'];
+const METHOD_NAMES: Record<DecisionMethod, string> = {
+  SHOOTOUT: 'Shootout',
+  COMPETITION_RULE: 'Competition rule',
+  LOTS: 'Lots',
+  OFFICIAL_DECISION: 'Official decision'
+};
 
 // the library's own buttons (renderButtons, cModal): `button font-medium`, an intent where the action has one
 const button = (text: string, action: string, intent?: string) => {
@@ -82,6 +90,7 @@ export function attachTeamScoreEditor({
   const state = createTeamScoreOverride({
     side1Score: set?.side1Score ?? 0,
     side2Score: set?.side2Score ?? 0,
+    decidedBy: matchUp?.score?.overtime?.decidedBy,
     winningSide: matchUp?.winningSide,
     swapSides
   });
@@ -135,15 +144,7 @@ function openEditor({
 
   const editor = document.createElement('div');
   editor.className = 'chc-scorecard-score-editor';
-  const winnerChoice = document.createElement('div');
-  winnerChoice.className = 'chc-scorecard-winner-choice';
-  winnerChoice.setAttribute('role', 'group');
-  const winnerLabel = labels?.winner ?? 'Winner';
-  winnerChoice.setAttribute('aria-label', winnerLabel);
-  const prompt = document.createElement('span');
-  prompt.className = 'chc-scorecard-winner-prompt';
-  prompt.textContent = winnerLabel;
-  winnerChoice.appendChild(prompt);
+  const winnerChoice = choiceGroup(labels?.winner ?? 'Winner');
   const choices = POSITIONS.map((position, index) => {
     const choice = button(names[index], 'choose-winner');
     choice.dataset.position = position;
@@ -154,12 +155,13 @@ function openEditor({
     winnerChoice.appendChild(choice);
     return choice;
   });
+  const { group: decisionChoice, choices: methods } = decisionGroup(state, labels, () => update());
   const cancel = button(labels?.cancel ?? 'Cancel', 'cancel-team-score');
   const save = button(labels?.save ?? 'Save', 'save-team-score', 'is-info');
   const actions = document.createElement('div');
   actions.className = 'chc-scorecard-score-actions';
   actions.append(cancel, save);
-  editor.append(winnerChoice, actions);
+  editor.append(winnerChoice, decisionChoice, actions);
   controls.after(editor);
   inputs[0].focus();
 
@@ -167,6 +169,9 @@ function openEditor({
     winnerChoice.hidden = !state.needsWinner();
     const winner = state.winnerAt();
     choices.forEach((choice) => choice.setAttribute('aria-pressed', String(choice.dataset.position === winner)));
+    decisionChoice.hidden = !state.needsDecision();
+    const method = state.methodChosen();
+    methods.forEach((choice) => choice.setAttribute('aria-pressed', String(choice.dataset.method === method)));
     save.disabled = !state.isValid() || !state.isDirty();
   }
   update();
@@ -189,4 +194,34 @@ function openEditor({
     close();
     onSave?.(value);
   });
+}
+
+/** a labelled group of choices, the winner's or the decision's */
+function choiceGroup(label: string, extraClass?: string): HTMLDivElement {
+  const group = document.createElement('div');
+  group.className = 'chc-scorecard-winner-choice';
+  if (extraClass) group.classList.add(extraClass);
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', label);
+  const prompt = document.createElement('span');
+  prompt.className = 'chc-scorecard-winner-prompt';
+  prompt.textContent = label;
+  group.appendChild(prompt);
+  return group;
+}
+
+/** how a winner on a level score was decided: one of the factory's methods, chosen like the winner */
+function decisionGroup(state: TeamScoreOverride, labels: ScorecardLabels | undefined, onChange: () => void) {
+  const group = choiceGroup(labels?.decidedBy ?? 'Decided by', 'chc-scorecard-decision-choice');
+  const choices = DECISION_METHODS.map((method) => {
+    const choice = button(labels?.decisionMethods?.[method] ?? METHOD_NAMES[method], 'choose-decision');
+    choice.dataset.method = method;
+    choice.addEventListener('click', () => {
+      state.chooseMethod(method);
+      onChange();
+    });
+    group.appendChild(choice);
+    return choice;
+  });
+  return { group, choices };
 }
