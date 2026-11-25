@@ -1,7 +1,7 @@
 import { footerState, scoreEntryError, submission, holdsEntry, clearGate } from '../logic/scoreEntryRules';
 import { isComplete, isSettled, matchUpStatus, error, enteredSets } from '../logic/scoreEntrySelectors';
 import { createScoreEntryModel, chooseEnding, setCell } from '../logic/scoreEntryModel';
-import { matchUpStatusConstants, scoreGovernor } from 'tods-competition-factory';
+import { matchUpStatusConstants, tools } from 'tods-competition-factory';
 import { toEngineOutcome } from '../logic/engineOutcome';
 import { describe, expect, it } from 'vitest';
 
@@ -23,7 +23,7 @@ describe('single timed set with no points', () => {
     'refuses a completed 0–0 consistently with the factory: %s',
     (format) => {
       const model = modelFor(format);
-      const validation = scoreGovernor.validateSetScore(zero, format, false, false);
+      const validation = tools.scoring.validateSetScore(zero, format, false, false);
       expect(validation.isValid).toBe(false);
       expect(validation.error).toBe(MESSAGE);
       expect(error(model)).toContain(MESSAGE);
