@@ -7,12 +7,12 @@
  *   Name (short label)  |  Format (code)  |  Description (sub-text)  |  ×
  *
  * Empty list = no restriction. The format input lights up green / red
- * as the operator types, based on matchUpFormatCode.parse. Pasting a
+ * as the operator types, based on tools.formats.parse. Pasting a
  * preset (via the "From preset…" picker) seeds all three fields at
  * once and the format-code validity carries over.
  */
 
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import type { ScoringEditorState, MatchUpFormatEntry, AllowedFormatEntry } from '../types';
 import type { ScoringEditorStore } from '../scoringEditorStore';
 import {
@@ -266,7 +266,7 @@ function buildRow(store: ScoringEditorStore, initialIndex: number): RowHandle {
       validityChip.dataset.state = 'empty';
       return;
     }
-    const parsed = matchUpFormatCode.parse?.(value);
+    const parsed = tools.formats.parse?.(value);
     if (parsed) {
       validityChip.textContent = '✓';
       validityChip.dataset.state = 'valid';
