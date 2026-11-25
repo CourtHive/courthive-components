@@ -23,7 +23,7 @@
  * field; the picker round-trips them but exposes no specialized UI.
  */
 
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { MATCH_UP_FORMAT_REGISTRY_SORTED, lookupRegistryFormat, FORMAT_STANDARD } from '../domain/scoringProjections';
 
 export interface MatchUpFormatPickerConfig {
@@ -108,7 +108,7 @@ function defaultBuilderState(): BuilderState {
 // complexity under the 30 threshold.
 function builderStateFromFormat(format: string): BuilderState {
   const state = defaultBuilderState();
-  const parsed: Parsed | undefined = matchUpFormatCode.parse?.(format);
+  const parsed: Parsed | undefined = tools.formats.parse?.(format);
   if (!parsed) return state;
 
   if (typeof parsed.bestOf === 'number') state.bestOf = parsed.bestOf;
@@ -195,7 +195,7 @@ function builderStateToParsed(state: BuilderState): Parsed {
 
 function safeStringify(parsed: Parsed): string | undefined {
   try {
-    return matchUpFormatCode.stringify?.(parsed);
+    return tools.formats.stringify?.(parsed);
   } catch {
     return undefined;
   }
@@ -203,7 +203,7 @@ function safeStringify(parsed: Parsed): string | undefined {
 
 function isValidFormat(value: string): boolean {
   if (!value) return false;
-  return !!matchUpFormatCode.parse?.(value);
+  return !!tools.formats.parse?.(value);
 }
 
 // ------------------------------------------------------------------ render
