@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.23.0](https://github.com/CourtHive/courthive-components/compare/v7.22.2...v7.23.0) (2026-11-25)
+
+
+### Features
+
+* add a guarded thin score-entry package entry ([#1059](https://github.com/CourtHive/courthive-components/issues/1059)) ([42a9579](https://github.com/CourtHive/courthive-components/commit/42a95797ff686ab7d315fce92c611745104f0cce))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.49.0 ([#1086](https://github.com/CourtHive/courthive-components/issues/1086)) ([42c8c7c](https://github.com/CourtHive/courthive-components/commit/42c8c7cd9a9e76266f9a2eb696f55cbc1b8afa1d))
+* **deps:** update tods-competition-factory to 7.49.0 ([#1086](https://github.com/CourtHive/courthive-components/issues/1086)) ([3e354dd](https://github.com/CourtHive/courthive-components/commit/3e354dd69a7f40ec106f84c15fcc592799c8e275))
+
 ## [7.22.2](https://github.com/CourtHive/courthive-components/compare/v7.22.1...v7.22.2) (2026-11-23)
 
 
