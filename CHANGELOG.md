@@ -1,5 +1,22 @@
 # Changelog
 
+## [7.24.0](https://github.com/CourtHive/courthive-components/compare/v7.23.0...v7.24.0) (2026-11-26)
+
+
+### Features
+
+* **scorecard:** a level team score asks how its winner was decided ([#1090](https://github.com/CourtHive/courthive-components/issues/1090)) ([f61f0e1](https://github.com/CourtHive/courthive-components/commit/f61f0e16399a15430e3302ffe882ebcdacc4c6e9))
+
+
+### Bug Fixes
+
+* **stories:** define the no-daily-limits scheduling policy locally ([#1091](https://github.com/CourtHive/courthive-components/issues/1091)) ([1238a00](https://github.com/CourtHive/courthive-components/commit/1238a0084e84af5cd67707ddcbc059bad4c33ac2))
+
+
+### Documentation
+
+* keep the agent guide self-contained and ignore CLAUDE.local.md ([#1092](https://github.com/CourtHive/courthive-components/issues/1092)) ([2e1ae04](https://github.com/CourtHive/courthive-components/commit/2e1ae04b75ebcab0a6247a10270a625fe4cd0088))
+
 ## [7.23.0](https://github.com/CourtHive/courthive-components/compare/v7.22.2...v7.23.0) (2026-11-25)
 
 
