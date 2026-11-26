@@ -2,10 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Mentat Orchestration (READ FIRST)
-
-Before doing anything else, read `../Mentat/CLAUDE.md`, `../Mentat/TASKS.md`, `../Mentat/standards/coding-standards.md`, and every file in `../Mentat/in-flight/`. Mentat is the orchestration layer for the entire CourtHive ecosystem; its standards override per-repo conventions when they conflict. If you are about to start **building** (not just planning), you must claim a surface in `../Mentat/in-flight/` and run the air-traffic-control conflict check first. See the parent `../CLAUDE.md` "Mentat Orchestration" section for the full protocol.
-
 ## Branching — cut from `dev`, not `main` (CA, 2026-09-28)
 
 `dev` is this repo's integration branch. **Branch from `origin/dev` and open PRs against `dev`.**
@@ -29,7 +25,7 @@ branch — and GitHub then silently **retargets open PRs to `main`**, which is h
 integration branch with nobody choosing that (the factory hit this on 2026-09-13). Auto-delete was turned
 off for that reason when this repo adopted `dev`. Protecting `dev` (no deletion, no force-push; no required checks) fixes
 both: GitHub's auto-delete skips protected branches, so merged feature branches delete themselves and `dev`
-stays. See `../Mentat/standards/coding-standards.md` § "Branch off `dev`, not `master`".
+stays.
 
 Local branches still need pruning. Prune on PR STATE, not ancestry — a squash-merged branch never looks
 merged by `git merge-base --is-ancestor`:
@@ -120,4 +116,4 @@ Vite builds to `dist/` as both ES module (`courthive-components.es.js`) and UMD 
 
 ## Ecosystem Standards
 
-This repo follows CourtHive ecosystem coding standards documented in the Mentat orchestration repo at `../Mentat/standards/coding-standards.md`.
+This repo follows the CourtHive ecosystem coding standards. The conventions above are the ones that apply here.
