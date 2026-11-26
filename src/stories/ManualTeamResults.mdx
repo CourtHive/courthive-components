@@ -8,19 +8,24 @@ Use **Override** in the team scorecard header to record a team result independen
 Later line results can still be entered, corrected or cleared while the manual team score and winner remain in place.
 Choose **Restore** to return to automatic calculation from the lines.
 
-The editor accepts nonnegative integer scores. A level score requires an explicit winner before Save is enabled.
-For example, a competition may award a 2–2 meeting to one team under its own tie-breaking rules. This is a
-manually decided result with a winner; it does not represent a completed draw without a winner.
+The editor accepts nonnegative integer scores. A level score requires an explicit winner, and how that winner was
+decided (a shootout, a competition rule, lots or an official decision), before Save is enabled. For example, a
+competition may award a 2–2 meeting to one team under its own tie-breaking rules. This is a manually decided result
+with a winner; it does not represent a completed draw without a winner. The factory refuses a winner on a level tie
+without that record, so the host sends it as `score.overtime` (below).
 
 ## Persisting the callbacks
 
 The component edits the header and invokes callbacks. The host application persists the result through its normal
 mutation queue and refreshes the scorecard from the resulting factory state. TMX already implements this flow.
-The `teamScore.onOverride` callback supplies scores and winner by side number, including when the display is swapped.
+The `teamScore.onOverride` callback supplies scores and winner by side number, including when the display is swapped,
+and `decidedBy` (`{ method }`) when the score is level.
 
 ```ts
 const teamScore = {
-  onOverride: ({ side1Score, side2Score, winningSide }) => {
+  onOverride: ({ side1Score, side2Score, winningSide, decidedBy }) => {
+    // present only on a level score: how its winner was decided
+    const overtime = decidedBy ? { overtime: { decidedIn: 'EXTERNAL', decidedBy } } : {};
     const methods = [
       {
         method: 'setMatchUpStatus',
@@ -33,7 +38,8 @@ const teamScore = {
             score: {
               sets: [{ setNumber: 1, side1Score, side2Score, winningSide }],
               scoreStringSide1: `${side1Score}-${side2Score}`,
-              scoreStringSide2: `${side2Score}-${side1Score}`
+              scoreStringSide2: `${side2Score}-${side1Score}`,
+              ...overtime
             }
           }
         }

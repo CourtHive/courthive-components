@@ -156,10 +156,20 @@ export const OverrideInlineThroughASwap: StoryObj = {
     expect(choice.hidden).toBe(false);
     expect(save.disabled).toBe(true);
 
+    // a winner on a level score also says how it was decided: until it does, nothing to save
+    const decision = host.querySelector('.chc-scorecard-decision-choice') as HTMLElement;
+    expect(decision.hidden).toBe(false);
     await user.click(host.querySelector('[data-action="choose-winner"][data-position="left"]') as HTMLButtonElement);
+    expect(save.disabled).toBe(true);
+    await user.click(host.querySelector('[data-action="choose-decision"][data-method="LOTS"]') as HTMLButtonElement);
     expect(save.disabled).toBe(false);
     await user.click(save);
-    expect(onOverride).toHaveBeenCalledWith({ side1Score: 2, side2Score: 2, winningSide: 2 });
+    expect(onOverride).toHaveBeenCalledWith({
+      side1Score: 2,
+      side2Score: 2,
+      winningSide: 2,
+      decidedBy: { method: 'LOTS' }
+    });
     expect(host.querySelector(SCORE_INPUT)).toBeNull();
     const shown = [...host.querySelectorAll<HTMLElement>('.chc-scorecard-side-score')].map((span) => span.textContent);
     expect(shown).toEqual(['2', '2']);

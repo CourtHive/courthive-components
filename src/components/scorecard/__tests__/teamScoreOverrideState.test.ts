@@ -13,8 +13,17 @@ describe('team score override state', () => {
     expect(state.winnerAt()).toBeUndefined();
 
     state.chooseWinner('right');
+    // a winner on a level score is saved with how it was decided
+    expect(state.needsDecision()).toBe(true);
+    expect(state.isValid()).toBe(false);
+    state.chooseMethod('OFFICIAL_DECISION');
     expect(state.isValid()).toBe(true);
-    expect(state.value()).toEqual({ side1Score: 2, side2Score: 2, winningSide: 2 });
+    expect(state.value()).toEqual({
+      side1Score: 2,
+      side2Score: 2,
+      winningSide: 2,
+      decidedBy: { method: 'OFFICIAL_DECISION' }
+    });
 
     // a decided score implies its winner, whatever was chosen while level
     state.setScore('right', 5);
@@ -49,10 +58,35 @@ describe('team score override state', () => {
     expect(state.isDirty()).toBe(false);
   });
 
-  it('an undecided level score starts unsaveable and keeps a level winner it was given', () => {
+  it('an undecided level score starts unsaveable and keeps a level winner and decision it was given', () => {
     expect(createTeamScoreOverride({}).isValid()).toBe(false);
-    const held = createTeamScoreOverride({ side1Score: 2, side2Score: 2, winningSide: 2 });
+    const decidedBy = { method: 'SHOOTOUT' as const };
+    const held = createTeamScoreOverride({ side1Score: 2, side2Score: 2, winningSide: 2, decidedBy });
     expect(held.winnerAt()).toBe('right');
+    expect(held.methodChosen()).toBe('SHOOTOUT');
+    expect(held.isValid()).toBe(true);
     expect(held.isDirty()).toBe(false);
+
+    held.chooseMethod('LOTS');
+    expect(held.isDirty()).toBe(true);
+    held.reset();
+    expect(held.methodChosen()).toBe('SHOOTOUT');
+  });
+
+  it('a score that decides the dual carries no decision', () => {
+    const state = createTeamScoreOverride({ side1Score: 2, side2Score: 2, winningSide: 1 });
+    state.chooseMethod('LOTS');
+    state.setScore('left', 3);
+    expect(state.needsDecision()).toBe(false);
+    expect(state.methodChosen()).toBeUndefined();
+    expect(state.isValid()).toBe(true);
+    expect(state.value()).toEqual({ side1Score: 3, side2Score: 2, winningSide: 1 });
+  });
+
+  it('ignores a method the factory does not know', () => {
+    const state = createTeamScoreOverride({ side1Score: 1, side2Score: 1, winningSide: 1 });
+    state.chooseMethod('COIN' as any);
+    expect(state.methodChosen()).toBeUndefined();
+    expect(state.isValid()).toBe(false);
   });
 });

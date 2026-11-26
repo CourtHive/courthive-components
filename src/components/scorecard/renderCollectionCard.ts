@@ -18,6 +18,7 @@ import { FLAG_ICON, icon, WARNING_ICON } from './scorecardIcons';
 import { swapMatchUpSides } from './scorecardSides';
 
 // constants and types
+import type { DecisionMethod } from './teamScoreOverrideState';
 import type { TeamPresentation } from './teamPalette';
 
 export interface ScorecardLabels {
@@ -37,6 +38,9 @@ export interface ScorecardLabels {
   restore?: string;
   manual?: string;
   winner?: string;
+  /** a level team score's decision: the group's label, e.g. "Decided by", and a name per method */
+  decidedBy?: string;
+  decisionMethods?: Partial<Record<DecisionMethod, string>>;
   /** the home team: its label, and the label's tooltip when the home team was inferred */
   home?: string;
   homeVenue?: string;
