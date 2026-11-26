@@ -1,6 +1,27 @@
-import { fixtures, tools, mocksEngine, tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import {
+  tools,
+  mocksEngine,
+  matchUpTypes,
+  tournamentEngine,
+  policyConstants,
+  drawDefinitionConstants
+} from 'tods-competition-factory';
 
 const { AD_HOC } = drawDefinitionConstants;
+const { POLICY_TYPE_SCHEDULING } = policyConstants;
+const { DOUBLES } = matchUpTypes;
+
+// Scheduling with average and recovery times but no daily limits, so autoSchedule places every round it is given.
+// Defined here: the factory keeps its copy as a private test fixture, and `fixtures.policies` never exported it, so
+// the read this replaces was always `undefined` and these stories scheduled under the default daily limits.
+const SCHEDULING_NO_DAILY_LIMITS = {
+  [POLICY_TYPE_SCHEDULING]: {
+    defaultTimes: {
+      averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
+      recoveryTimes: [{ minutes: { [DOUBLES]: 30, default: 60 } }]
+    }
+  }
+};
 
 export function generateEventData({
   matchUpFormat = 'SET3-S:6/TB7',
@@ -95,7 +116,7 @@ function genData({
   ];
 
   const result = mocksEngine.generateTournamentRecord({
-    policyDefinitions: (fixtures.policies as any).POLICY_SCHEDULING_NO_DAILY_LIMITS,
+    policyDefinitions: SCHEDULING_NO_DAILY_LIMITS,
     participantsProfile: { scaleAllParticipants: true },
     scheduleCompletedMatchUps: true,
     randomWinningSide: true,
