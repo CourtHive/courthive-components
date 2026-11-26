@@ -1,5 +1,6 @@
 import { FinishingOrderEntry } from './finishingOrderState';
 import { ScorecardIssue } from './dualIssues';
+import { DecisionMethod } from './teamScoreOverrideState';
 import { TeamPresentation } from './teamPalette';
 export interface ScorecardLabels {
     /** names the order-of-finish badge for assistive technology and its tooltip, e.g. "Order of finish" */
@@ -18,6 +19,9 @@ export interface ScorecardLabels {
     restore?: string;
     manual?: string;
     winner?: string;
+    /** a level team score's decision: the group's label, e.g. "Decided by", and a name per method */
+    decidedBy?: string;
+    decisionMethods?: Partial<Record<DecisionMethod, string>>;
     /** the home team: its label, and the label's tooltip when the home team was inferred */
     home?: string;
     homeVenue?: string;
