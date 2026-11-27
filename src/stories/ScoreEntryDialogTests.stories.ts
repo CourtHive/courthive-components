@@ -17,7 +17,7 @@
  * item (`ApproachSwitching`), all in `scoreEntryDialog.stories.ts`.
  */
 import { matchUpStatusConstants, policyConstants } from 'tods-competition-factory';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
 import { expect, fn, spyOn, waitFor } from 'storybook/test';
 import { cModal } from '../components/modal/cmodal';
@@ -41,7 +41,7 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 const { WALKOVER, RETIRED, COMPLETED, SUSPENDED, DOUBLE_WALKOVER } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
-const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 const meta: Meta = {
   title: 'Scoring/Score Entry/Tests/Dialog',

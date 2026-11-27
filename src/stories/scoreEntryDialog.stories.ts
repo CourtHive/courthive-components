@@ -20,7 +20,7 @@
  * functions query `document` rather than `canvasElement` — a modal is not in the canvas.
  */
 import { matchUpStatusConstants, policyConstants } from 'tods-competition-factory';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
 import { asRecord, gamesPerSet } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
@@ -34,7 +34,7 @@ const { WALKOVER } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 /** The real shipped vocabulary, never a hand-mirror of it. */
-const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
   title: 'Scoring/Score Entry/Dialog'

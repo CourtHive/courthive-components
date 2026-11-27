@@ -25,7 +25,7 @@
  * the story closes anything standing before it opens, and the play function reads `document`.
  */
 import { policyConstants, matchUpStatusConstants } from 'tods-competition-factory';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { openScoreEntryDialog } from '../components/scoring/scoreEntryDialog';
 import { gamesPerSet, storyLog } from './helpers/scoreEntryStoryHost';
 import { cModal } from '../components/modal/cmodal';
@@ -48,7 +48,7 @@ const { POLICY_TYPE_SCORING } = policyConstants;
 const { COMPLETED, TO_BE_PLAYED } = matchUpStatusConstants;
 
 /** The real shipped vocabulary, never a hand-mirror of it. */
-const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
   title: 'Scoring/Score Entry/Over a Draw',

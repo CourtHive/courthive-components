@@ -1,5 +1,5 @@
 import { matchUpStatusConstants, entryStatusConstants, policyConstants } from 'tods-competition-factory';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { describe, it, expect } from 'vitest';
 import {
   normalizeStatusCode,
@@ -16,7 +16,7 @@ const { POLICY_TYPE_SCORING } = policyConstants;
 
 // The real shipped vocabulary, not a hand-written mirror of it. A hand-mirror is how the scoring
 // editor and the factory fixture drifted apart while both looked correct.
-const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 describe('groupKeyForStatus', () => {
   // A double exit has no group of its own; the policy files Wo/Wo under WALKOVER.

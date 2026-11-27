@@ -17,7 +17,7 @@
  */
 import { closeAllModals, dialogLauncher, inModal, openFrom, MODAL } from './helpers/scoreEntryDialogLauncher';
 import { matchUpStatusConstants, policyConstants } from 'tods-competition-factory';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { createDynamicSetsRegion } from '../components/scoring/regions/dynamicSetsRegion';
 import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
 import { expect, fn, waitFor } from 'storybook/test';
@@ -31,7 +31,7 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 const { WALKOVER } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
-const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 const meta: Meta = {
   title: 'Scoring/Score Entry/Tests/Keyboard',
