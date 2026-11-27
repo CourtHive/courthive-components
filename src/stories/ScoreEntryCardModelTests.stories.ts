@@ -6,7 +6,8 @@
  * what an ending cleared, Free Score's caret on open and its half-typed text, the no-ad tiebreak column
  * a director reopens, CA's deferred note 10B typed end to end, and the dialog's engine-ready outcome.
  */
-import { fixtures, matchUpStatusConstants, policyConstants, tournamentEngine } from 'tods-competition-factory';
+import { matchUpStatusConstants, policyConstants, tournamentEngine } from 'tods-competition-factory';
+import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
 import { buildDrawBehind, engineMatchUp, DRAW_BEHIND_FORMAT } from './helpers/scoreEntryEngineHost';
 import { createDynamicSetsRegion } from '../components/scoring/regions/dynamicSetsRegion';
 import { enteredSets } from '../components/scoring/logic/scoreEntrySelectors';
@@ -28,7 +29,7 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 
 const { CANCELLED, COMPLETED, DEAD_RUBBER, TO_BE_PLAYED, WALKOVER } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
-const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 const meta: Meta = {
   title: 'Scoring/Score Entry/Tests/Card Model',
@@ -300,7 +301,10 @@ export const DialogReportsEngineOutcome: StoryObj = {
         await expect(outcome.score.sets).toHaveLength(2);
         await expect(outcome.winningSide).toBe(1);
         await expect(outcome.matchUpStatus).toBe(COMPLETED);
-        await expect('matchUpStatusCodes' in outcome, 'no reason chosen: codes are not sent').toBe(false);
+        await expect(
+          'sideStatusCodes' in outcome || 'matchUpStatusCode' in outcome,
+          'no reason chosen: codes are not sent'
+        ).toBe(false);
         await expect('matchUpFormat' in outcome, 'the format was not changed').toBe(false);
         await expect(sendAsIs(launched).success).toBe(true);
         await expect(engineMatchUp(ref).score.scoreStringSide1).toBe('6-4 6-3');
@@ -310,13 +314,13 @@ export const DialogReportsEngineOutcome: StoryObj = {
         const launched = await openFrom(canvasElement);
         await user.click(inModal('button[data-action="clear"]'));
         await user.click(inModal(SUBMIT));
-        await expect(launched.submitted.at(-1).outcome).toEqual({ score: { sets: [] }, matchUpStatusCodes: [] });
+        await expect(launched.submitted.at(-1).outcome).toEqual({ score: { sets: [] }, clearStatusCodes: true });
         await expect(sendAsIs(launched).success).toBe(true);
         await expect(engineMatchUp(ref).matchUpStatus).toBe(TO_BE_PLAYED);
         await expect(engineMatchUp(ref).winningSide).toBeUndefined();
       });
 
-      await step('a walkover with a reason: positional codes against the exiting side', async () => {
+      await step('a walkover with a reason: keyed to the exiting side', async () => {
         const launched = await openFrom(canvasElement);
         await user.click(inModal('button[data-action="endedEarly"][data-side="2"]'));
         await user.click(inModal(`[data-panel-side="2"] button[data-ending="${WALKOVER}"]`));
@@ -325,7 +329,7 @@ export const DialogReportsEngineOutcome: StoryObj = {
         const { outcome } = launched.submitted.at(-1);
         await expect(outcome.matchUpStatus).toBe(WALKOVER);
         await expect(outcome.winningSide).toBe(1);
-        await expect(outcome.matchUpStatusCodes).toEqual(['', WALKOVER_INJURY]);
+        await expect(outcome.sideStatusCodes).toEqual({ 2: WALKOVER_INJURY });
         await expect(outcome.score.sets).toEqual([]);
         await expect(sendAsIs(launched).success).toBe(true);
         await expect(engineMatchUp(ref).matchUpStatus).toBe(WALKOVER);

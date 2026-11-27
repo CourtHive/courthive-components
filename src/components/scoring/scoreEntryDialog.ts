@@ -91,8 +91,9 @@ export type ScoreEntryDialogParams = Omit<
    * `outcome` is the same result in the shape the factory reads — hand it to
    * `tournamentEngine.setMatchUpStatus({ drawId, matchUpId, outcome })` as is (pass a copy if you keep
    * what you sent: the engine writes its derived score strings into it). The score as `score.sets`, a
-   * chosen reason as positional `matchUpStatusCodes`, a clear as the empty-sets outcome that actually
-   * clears, and a format changed through the chip as `matchUpFormat`. See `logic/engineOutcome.ts`.
+   * chosen reason keyed (`sideStatusCodes` for the side that exited, `matchUpStatusCode` for the match), a
+   * clear as the empty-sets outcome with `clearStatusCodes: true`, and a format changed through the chip as
+   * `matchUpFormat`. See `logic/engineOutcome.ts`.
    */
   onSubmit?: (outcome: ScoreEntryOutcome & { sets: SetScore[]; outcome: EngineOutcome }) => void | PromiseLike<unknown>;
   /** Which approach opens. Defaults to Dynamic Sets. */

@@ -11,7 +11,8 @@
  * Assertions go through `dataset`, `aria-*` and computed style rather than class names: those are what a
  * screen reader, a Playwright journey and an operator's eye read.
  */
-import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, policyConstants } from 'tods-competition-factory';
+import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
 import { createScoreEntryStore } from '../components/scoring/logic/scoreEntryStore';
 import { renderScoreEntryCard } from '../components/scoring/scoreEntryCard';
 import { one } from './helpers/scoreRegionCard';
@@ -37,7 +38,7 @@ const {
 } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
-const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 const meta: Meta = {
   title: 'Scoring/Score Entry/Tests/Card Wiring',

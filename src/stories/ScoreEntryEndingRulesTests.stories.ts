@@ -358,7 +358,7 @@ export const ClearAnImportedRetirement: StoryObj = {
           await expect(launched.submitted.at(-1)).toEqual({
             cleared: true,
             sets: [],
-            outcome: { score: { sets: [] }, matchUpStatusCodes: [] }
+            outcome: { score: { sets: [] }, clearStatusCodes: true }
           });
           closeAllModals();
         });

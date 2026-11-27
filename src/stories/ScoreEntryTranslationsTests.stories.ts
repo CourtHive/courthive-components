@@ -14,7 +14,8 @@
  */
 import { SCORE_ENTRY_TEXT } from '../components/scoring/logic/scoreEntryText';
 import { endingLabels } from '../components/scoring/logic/irregularEnding';
-import { fixtures, policyConstants } from 'tods-competition-factory';
+import { policyConstants } from 'tods-competition-factory';
+import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
 import { expect, waitFor } from 'storybook/test';
 import { user } from './helpers/trustedUser';
 import {
@@ -37,7 +38,7 @@ const meta: Meta = {
 export default meta;
 
 const { POLICY_TYPE_SCORING } = policyConstants;
-const GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const GROUPS = POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 const SIDES: [{ participantName: string }, { participantName: string }] = [
   { participantName: 'Rosalind Lem' },
   { participantName: 'Derrick Ellul' }

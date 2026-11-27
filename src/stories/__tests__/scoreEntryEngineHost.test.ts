@@ -105,9 +105,9 @@ describe('the engine behind the score-entry dialog', () => {
     expect(held().winningSide).toBeUndefined();
     expect(held().score.scoreStringSide1).toBe('6-4 6-3');
 
-    // Through the host's mapping it is the clear CA asked for.
+    // Through the host's mapping it is a clear: empty sets and the explicit clear of the reasons.
     const mapped = recordOutcome(ref, { cleared: true });
-    expect(mapped.sent).toEqual({ score: { sets: [] }, matchUpStatusCodes: [] });
+    expect(mapped.sent).toEqual({ score: { sets: [] }, clearStatusCodes: true });
     expect(mapped.result.success).toBe(true);
     expect(held().matchUpStatus).toBe(TO_BE_PLAYED);
     expect(held().score?.scoreStringSide1 ?? '').toBe('');
@@ -139,9 +139,9 @@ describe('the engine behind the score-entry dialog', () => {
     expect(held().matchUpStatus).toBe(WALKOVER);
     expect(held().sideStatusCodes, 'the reason never reached the record').toBeUndefined();
 
-    // The mapping sends it positionally, and the engine files it against the exiting side.
+    // The mapping sends it keyed to the exiting side, and the engine files it there.
     const mapped = recordOutcome(ref, dialogOutcome);
-    expect(mapped.sent.matchUpStatusCodes).toEqual(['', WALKOVER_INJURY]);
+    expect(mapped.sent.sideStatusCodes).toEqual({ 2: WALKOVER_INJURY });
     expect(held().sideStatusCodes).toEqual({ 2: WALKOVER_INJURY });
   });
 });

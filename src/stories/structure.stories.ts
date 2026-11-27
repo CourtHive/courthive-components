@@ -4,6 +4,7 @@ import {
   drawDefinitionConstants,
   matchUpStatusConstants
 } from 'tods-competition-factory';
+import { resolveTieFormat } from '@courthive/competition-catalogue';
 
 const { FEED_IN, ROUND_ROBIN, AD_HOC, LUCKY_DRAW } = drawDefinitionConstants;
 const { COMPLETED } = matchUpStatusConstants;
@@ -325,7 +326,7 @@ export const Qualifying = {
 };
 export const Team = {
   args: {
-    tieFormatName: 'DOMINANT_DUO',
+    tieFormat: resolveTieFormat('DOMINANT_DUO'),
     completeAllMatchUps: false,
     eventType: 'TEAM',
     drawSize: 4

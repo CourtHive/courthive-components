@@ -426,7 +426,7 @@ describe('an imported retirement with no score (scorelessRecordedOutcome)', () =
     expect(holdsEntry(view(retired()))).toBe(true);
   });
 
-  it('clearable: the clear is submitted, and the engine outcome resets the score and blanks the codes', () => {
+  it('clearable: the clear is submitted, and the engine outcome resets the score and clears the codes', () => {
     const emptied = deepFreeze(clearAll(retired()));
     const gate = gateFor(emptied, { openedOnRecordedOutcome: true, cleared: true, clearable: true });
     const outcome = submission(view(emptied), gate, CONTEXT)!;
@@ -435,7 +435,7 @@ describe('an imported retirement with no score (scorelessRecordedOutcome)', () =
     expect(enteredSets(emptied)).toEqual([]);
     expect(toEngineOutcome({ ...outcome, sets: enteredSets(emptied) })).toEqual({
       score: { sets: [] },
-      matchUpStatusCodes: []
+      clearStatusCodes: true
     });
   });
 
@@ -630,7 +630,7 @@ describe('what Submit sends is read from the model (cardHoldsModel)', () => {
     });
   });
 
-  it('a walkover with a reason reaches the engine as positional codes against the exiting side', () => {
+  it('a walkover with a reason reaches the engine keyed to the exiting side', () => {
     const {
       tournamentRecord,
       drawIds: [drawId]
@@ -642,7 +642,7 @@ describe('what Submit sends is read from the model (cardHoldsModel)', () => {
 
     const walkover = choose(choose(frozen(), side(WALKOVER, 2)), { kind: 'reasonCode', code: 'W1' });
     const outcome = toEngineOutcome({ ...submission(view(walkover), gateFor(walkover), CONTEXT), sets: [] });
-    expect(outcome.matchUpStatusCodes).toEqual(['', 'W1']);
+    expect(outcome.sideStatusCodes).toEqual({ 2: 'W1' });
 
     let result: any = tournamentEngine.setMatchUpStatus({ ...ref, outcome: structuredClone(outcome) });
     expect(result.success).toBe(true);

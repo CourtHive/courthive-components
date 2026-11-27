@@ -9,11 +9,11 @@
  *
  * ── What the engine READS, measured rather than assumed ──
  *
- * Measured 2026-10-01 against published factory 7.4.0 and again against `dev` (`cff5c3d7c0`), by calling
- * `setMatchUpStatus` with each shape and reading the matchUp back:
+ * Measured by calling `setMatchUpStatus` with each shape and reading the matchUp back (first against factory
+ * 7.4.0; the reason and clear fields as of 8.0.0):
  *
- *   - `outcome.score.sets`, `outcome.winningSide`, `outcome.matchUpStatus`, `outcome.matchUpStatusCodes`
- *     and `outcome.matchUpFormat`. Nothing else.
+ *   - `outcome.score.sets`, `outcome.winningSide`, `outcome.matchUpStatus`, `outcome.sideStatusCodes`,
+ *     `outcome.matchUpStatusCode`, `outcome.clearStatusCodes` and `outcome.matchUpFormat`. Nothing else.
  *   - It DERIVES `scoreStringSide1` / `scoreStringSide2` from the sets, every time, and writes them INTO
  *     the object it was handed — `setMatchUpStatus` mutates its `outcome`. This host passes a copy.
  *   - `score` as a STRING — what the card reports — is refused outright: `ERR_INVALID_VALUES`. A host that
@@ -21,11 +21,10 @@
  *   - `reasonCode` and `cleared` are unknown to it and ignored. A `{ cleared: true }` sent as-is, or an
  *     empty `{}`, is NOT a clear: the engine drops the winner and leaves the stale score standing as
  *     IN_PROGRESS. The clear is `{ score: { sets: [] } }`, which resets to TO_BE_PLAYED, plus
- *     `matchUpStatusCodes: []`, without which the reason code of the outcome being removed survives it.
- *   - A reason travels as `matchUpStatusCodes`, a positional string array (`['', 'W1']` is side 2). The
- *     engine trusts the VALUES and reads the side off `winningSide` for a single exit; for a double exit
- *     the index is the side. It stores the split as `sideStatusCodes` / `matchUpStatusCode`, which is
- *     what the dialog reads back.
+ *     `clearStatusCodes: true`, which removes the reasons with the result explicitly.
+ *   - A reason travels keyed, as it is stored: `sideStatusCodes` for the side that exited (`{ 2: 'W1' }`),
+ *     both sides for a double exit, `matchUpStatusCode` for an ending that resolves nobody. That is what
+ *     the dialog reads back. An outcome carrying the positional `matchUpStatusCodes` array is refused.
  *   - A set with only the LOSER's tiebreak points is refused (`non-numeric values`); both sides' points
  *     are required. The model reports both, so this only bites a host building sets by hand.
  *

@@ -20,8 +20,6 @@ export type ScoreOutcome = {
   scoreObject?: any; // Full score object from generateOutcomeFromScoreString
   winningSide?: number;
   matchUpStatus?: string;
-  /** Policy reason codes chosen for this outcome, as code strings — e.g. `['RJ']`. */
-  matchUpStatusCodes?: string[];
   error?: string;
   matchUpFormat?: string;
   score?: string;

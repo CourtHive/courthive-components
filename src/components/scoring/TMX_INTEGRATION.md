@@ -63,8 +63,8 @@ openScoreEntryDialog({
 });
 ```
 
-`outcome.score.sets` carries the sets; a chosen reason is a positional `matchUpStatusCodes`; a clear is
-`{ score: { sets: [] }, matchUpStatusCodes: [] }`; a format changed through the chip rides as
+`outcome.score.sets` carries the sets; a chosen reason is keyed (`sideStatusCodes` for the side that exited,
+`matchUpStatusCode` for the match); a clear is `{ score: { sets: [] }, clearStatusCodes: true }`; a format changed through the chip rides as
 `matchUpFormat` (an unchanged one is left to the engine's own). The mapping is `toEngineOutcome` from `tods-competition-factory/score-entry-state` (re-exported by `logic/engineOutcome.ts`),
 exported as `toEngineOutcome` for a host that builds an outcome by hand. The raw fields (`score` string,
 `sets`, `reasonCode`, `cleared`) are still reported beside it, unchanged.
@@ -93,6 +93,10 @@ are now. 7.5.0's completeness rule does not close the `sets` row: it validates t
 a score sent at the top level is never given to it, so the result is a COMPLETED matchUp with a winner
 and no score at all.
 
+**Factory 8.0.0 replaces the positional reason array.** A reason is sent keyed, as it is stored, and the clear
+is explicit (`clearStatusCodes: true`); an outcome carrying `matchUpStatusCodes` is refused with
+`INVALID_VALUES`. The rows below state the 8.0.0 shape.
+
 `openScoreEntryDialog`'s `onSubmit` reports:
 
 ```typescript
@@ -100,31 +104,30 @@ and no score at all.
 ```
 
 `setMatchUpStatus` reads from `outcome`: **`score.sets`**, **`winningSide`**, **`matchUpStatus`**,
-**`matchUpStatusCodes`** and **`matchUpFormat`**. Nothing else. The two shapes differ in five places,
+**`sideStatusCodes`**, **`matchUpStatusCode`**, **`clearStatusCodes`** and **`matchUpFormat`**. Nothing else. The two shapes differ in five places,
 and a host has to bridge each one:
 
-| the dialog reports                                  | the engine wants                                                        | what happens if you forward it as-is                                               |
-| --------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `score` as a **string** (`'6-4 6-3'`)               | `score: { sets }` — it derives `scoreStringSide1/2` itself, every time  | **refused**, `ERR_INVALID_VALUES`, on every Submit                                 |
-| `sets` at the top level                             | `score.sets`                                                            | ignored: recorded COMPLETED with the winner and **no score**                       |
-| `reasonCode: 'W1'`                                  | `matchUpStatusCodes: ['', 'W1']` — positional, the exiting side's index | ignored; the reason is lost                                                        |
-| `cleared: true`                                     | `{ score: { sets: [] }, matchUpStatusCodes: [] }`                       | **not a clear**: the winner is dropped and the stale score stays, as `IN_PROGRESS` |
-| a format chosen through the chip (`onFormatChange`) | `outcome.matchUpFormat`, persisted once the result is accepted          | the format change is lost                                                          |
+| the dialog reports                                  | the engine wants                                                       | what happens if you forward it as-is                                               |
+| --------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `score` as a **string** (`'6-4 6-3'`)               | `score: { sets }` — it derives `scoreStringSide1/2` itself, every time | **refused**, `ERR_INVALID_VALUES`, on every Submit                                 |
+| `sets` at the top level                             | `score.sets`                                                           | ignored: recorded COMPLETED with the winner and **no score**                       |
+| `reasonCode: 'W1'`                                  | `sideStatusCodes: { 2: 'W1' }` — keyed by the exiting side             | ignored; the reason is lost                                                        |
+| `cleared: true`                                     | `{ score: { sets: [] }, clearStatusCodes: true }`                      | **not a clear**: the winner is dropped and the stale score stays, as `IN_PROGRESS` |
+| a format chosen through the chip (`onFormatChange`) | `outcome.matchUpFormat`, persisted once the result is accepted         | the format change is lost                                                          |
 
 Details that decide the mapping:
 
 - **The engine mutates the `outcome` it is handed** — it writes the derived strings into `outcome.score`.
   Pass a copy if you intend to log or reuse what was sent.
-- **`matchUpStatusCodes` values are trusted, positions mostly are not.** For a single exit the engine
-  reads the side off `winningSide` (`['W1']` with `winningSide: 1` files side 2). For a double exit the
-  index IS the side: send `[code, code]`. For an ending that resolves nobody (`CANCELLED`, `ABANDONED`,
-  `INCOMPLETE`) send `[code]`; it is filed as `matchUpStatusCode`. It stores the split as
-  `sideStatusCodes` / `matchUpStatusCode`, which is what the dialog reads back on reopen.
-- **Send `matchUpStatusCodes` only when a reason was chosen** (TMX's existing rule in
-  `services/transitions/scoreMatchUp.ts`): an empty array blanks the codes. The one place to send the
-  empty array deliberately is the clear, because **a cleared result keeps its reason code otherwise** —
-  measured: a walkover cleared with `{ score: { sets: [] } }` alone resets to `TO_BE_PLAYED` with
-  `sideStatusCodes: { 2: 'W1' }` still on the record.
+- **Reasons are keyed by side.** For a single exit send `sideStatusCodes` for the side that did not win
+  (`{ 2: 'W1' }` with `winningSide: 1`). For a double exit send both sides: `{ 1: code, 2: code }`. For an
+  ending that resolves nobody (`CANCELLED`, `ABANDONED`, `INCOMPLETE`) send `matchUpStatusCode`. That is
+  what the dialog reads back on reopen. `keyedStatusCodes` (re-exported by `logic/engineOutcome.ts`)
+  builds them from a reported `reasonCode`.
+- **Send a reason only when one was chosen.** A write that submits no reason keeps the reasons the matchUp
+  holds, where they still describe its result (a result corrected to a played win, or removed, keeps
+  none). The clear sends `clearStatusCodes: true` as well, so the reasons go with the result explicitly
+  rather than by that rule.
 - **A set needs BOTH tiebreak scores.** `{ side2TiebreakScore: 3 }` alone is refused
   (`non-numeric values`). The model reports both (`7`/`3` for a `7-6(3)`), so this only bites a host
   building sets by hand.
