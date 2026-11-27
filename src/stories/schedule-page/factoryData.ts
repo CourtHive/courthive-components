@@ -185,8 +185,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
   }
 
   // 3. Extract data
-  const stateResult = tournamentEngine.getState();
-  const record = stateResult?.tournamentRecord ?? tournamentRecord;
+  const record = tournamentEngine.getTournament().tournamentRecord ?? tournamentRecord;
   const tournamentId = record.tournamentId;
 
   const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({

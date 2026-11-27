@@ -212,8 +212,7 @@ function createEngineSetup(options?: { includeBookings?: boolean }) {
     }
   }
 
-  const stateResult = tournamentEngine.getState();
-  const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
+  const recordWithBookings = tournamentEngine.getTournament().tournamentRecord ?? tournamentRecord;
 
   const engine = new AvailabilityEngine();
   engine.init(recordWithBookings, {
@@ -303,8 +302,7 @@ function createEngineSetupWithDates({ startDate, endDate }: { startDate: string;
   }
 
   tournamentEngine.setState(tournamentRecord);
-  const stateResult = tournamentEngine.getState();
-  const recordWithBookings = stateResult?.tournamentRecord ?? tournamentRecord;
+  const recordWithBookings = tournamentEngine.getTournament().tournamentRecord ?? tournamentRecord;
 
   const engine = new AvailabilityEngine();
   engine.init(recordWithBookings, {
@@ -1535,7 +1533,7 @@ export const RoundTrip = {
       console.log(`[RoundTrip] ${modifiedCount} court(s) modified, ${blocksByCourt.size - modifiedCount} unchanged`);
       console.groupEnd();
 
-      const { tournamentRecord: updated } = tournamentEngine.getState() || {};
+      const { tournamentRecord: updated } = tournamentEngine.getTournament();
       tournamentRecord = updated;
 
       // Update snapshot so button disables

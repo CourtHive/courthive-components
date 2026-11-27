@@ -258,8 +258,7 @@ export function createFactorySetup(options?: FactorySetupOptions): FactorySetup 
   }
 
   // Retrieve updated record
-  const stateResult = tournamentEngine.getState();
-  const record = stateResult?.tournamentRecord ?? tournamentRecord;
+  const record = tournamentEngine.getTournament().tournamentRecord ?? tournamentRecord;
   const tournamentId = record.tournamentId;
 
   // 3. Extract VenueInfo[]
