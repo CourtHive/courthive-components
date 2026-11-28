@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { fixtures, policyConstants } from 'tods-competition-factory';
+import { policyConstants } from 'tods-competition-factory';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { ScoringEditorStore } from '../scoringEditorStore';
 import type { ScoringPolicyData } from '../types';
 
@@ -16,7 +17,7 @@ const { POLICY_TYPE_SCORING } = policyConstants;
  * mirror a policy whose every key was empty, so it could invent any shape without contradicting
  * its source, and it invented the wrong one.
  */
-const REAL_POLICY = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING];
+const REAL_POLICY = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING];
 const REAL_CODES = REAL_POLICY.matchUpStatusCodes as ScoringPolicyData['matchUpStatusCodes'];
 
 function makeStore(initialPolicy: ScoringPolicyData) {

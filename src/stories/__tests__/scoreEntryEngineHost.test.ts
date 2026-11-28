@@ -17,6 +17,9 @@ import { buildDrawBehind, engineMatchUp, recordOutcome, toEngineOutcome } from '
 import { tournamentEngine, matchUpStatusConstants, errorConditionConstants } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
+/** What setMatchUpStatus takes as its outcome; the raw dialog shapes below are sent as one on purpose. */
+type EngineOutcome = NonNullable<Parameters<typeof tournamentEngine.setMatchUpStatus>[0]>['outcome'];
+
 const { COMPLETED, WALKOVER, TO_BE_PLAYED, IN_PROGRESS } = matchUpStatusConstants;
 const { INVALID_SCORE, INVALID_VALUES } = errorConditionConstants;
 
@@ -81,7 +84,10 @@ describe('the engine behind the score-entry dialog', () => {
     };
 
     // The raw spread — what a host does when it has not read the engine's shape.
-    const raw: any = tournamentEngine.setMatchUpStatus({ ...ref, outcome: { ...dialogOutcome } });
+    const raw: any = tournamentEngine.setMatchUpStatus({
+      ...ref,
+      outcome: { ...dialogOutcome } as unknown as EngineOutcome
+    });
     expect(raw.error?.code).toBe(INVALID_VALUES.code);
     expect(held().matchUpStatus, 'and nothing was written').toBe(TO_BE_PLAYED);
 
@@ -99,15 +105,18 @@ describe('the engine behind the score-entry dialog', () => {
 
     // The field the dialog reports means nothing to the engine: the winner goes, the stale score stays, and
     // the matchUp reads as still being played.
-    const raw: any = tournamentEngine.setMatchUpStatus({ ...ref, outcome: { cleared: true } });
+    const raw: any = tournamentEngine.setMatchUpStatus({
+      ...ref,
+      outcome: { cleared: true } as unknown as EngineOutcome
+    });
     expect(raw.success).toBe(true);
     expect(held().matchUpStatus, 'a stale score left standing as in progress').toBe(IN_PROGRESS);
     expect(held().winningSide).toBeUndefined();
     expect(held().score.scoreStringSide1).toBe('6-4 6-3');
 
-    // Through the host's mapping it is the clear CA asked for.
+    // Through the host's mapping it is a clear: empty sets and the explicit clear of the reasons.
     const mapped = recordOutcome(ref, { cleared: true });
-    expect(mapped.sent).toEqual({ score: { sets: [] }, matchUpStatusCodes: [] });
+    expect(mapped.sent).toEqual({ score: { sets: [] }, clearStatusCodes: true });
     expect(mapped.result.success).toBe(true);
     expect(held().matchUpStatus).toBe(TO_BE_PLAYED);
     expect(held().score?.scoreStringSide1 ?? '').toBe('');
@@ -139,9 +148,9 @@ describe('the engine behind the score-entry dialog', () => {
     expect(held().matchUpStatus).toBe(WALKOVER);
     expect(held().sideStatusCodes, 'the reason never reached the record').toBeUndefined();
 
-    // The mapping sends it positionally, and the engine files it against the exiting side.
+    // The mapping sends it keyed to the exiting side, and the engine files it there.
     const mapped = recordOutcome(ref, dialogOutcome);
-    expect(mapped.sent.matchUpStatusCodes).toEqual(['', WALKOVER_INJURY]);
+    expect(mapped.sent.sideStatusCodes).toEqual({ 2: WALKOVER_INJURY });
     expect(held().sideStatusCodes).toEqual({ 2: WALKOVER_INJURY });
   });
 });

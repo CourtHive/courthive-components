@@ -9,7 +9,8 @@ import '../../components/policy-catalog/editors/scoring/scoring-editor.css';
 
 import { ScoringEditorControl, createScoringEditor } from '../../components/policy-catalog';
 import type { ScoringPolicyData } from '../../components/policy-catalog';
-import { fixtures, policyConstants } from 'tods-competition-factory';
+import { policyConstants } from 'tods-competition-factory';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 
 export default {
   title: 'Policies & Setup/Policy Catalog/Scoring Editor',
@@ -49,7 +50,7 @@ const SCORING_POLICY_DEFAULT: ScoringPolicyData = {
  * like — object entries carrying `matchUpStatusCodeDisplay` and `label`, which is what the scoring
  * modal's reason picker renders.
  */
-const REAL_STATUS_CODES = fixtures.policies.POLICY_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING]
+const REAL_STATUS_CODES = TEMPLATE_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING]
   .matchUpStatusCodes as ScoringPolicyData['matchUpStatusCodes'];
 
 const SCORING_POLICY_TOURNAMENT: ScoringPolicyData = {

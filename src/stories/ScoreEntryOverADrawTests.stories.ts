@@ -173,8 +173,8 @@ export const DoubleWalkoverClears: StoryObj = {
     await press('button[data-action="endedEarly"][data-side="1"]');
     await expect(reason(1)!.ariaPressed).toBe('true');
 
-    // Clear and submit: the empty-sets outcome with `matchUpStatusCodes: []`. Without the empty array the
-    // engine keeps the reason of the outcome just removed — measured.
+    // Clear and submit: the empty-sets outcome with `clearStatusCodes: true`, which removes the reason with
+    // the result.
     await press('button[data-action="clear"]');
     await press(SUBMIT);
     await expect(host.held().matchUpStatus).toBe(TO_BE_PLAYED);

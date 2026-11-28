@@ -10,7 +10,8 @@
  * whatever focus was doing; a real key pressed after focus had fallen to the body would reach nothing.
  * So every story that presses twice is also a check that the first press left focus somewhere live.
  */
-import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, policyConstants } from 'tods-competition-factory';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { createDynamicSetsRegion } from '../components/scoring/regions/dynamicSetsRegion';
 import { createFreeScoreRegion } from '../components/scoring/regions/freeScoreRegion';
 import { createDialPadRegion } from '../components/scoring/regions/dialPadRegion';
@@ -25,7 +26,7 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 const { WALKOVER, RETIRED, DEFAULTED, IN_PROGRESS, CANCELLED, AWAITING_RESULT, SUSPENDED } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
-const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 const meta: Meta = {
   title: 'Scoring/Score Entry/Tests/Ending Shortcuts',

@@ -95,6 +95,7 @@
     "@chromatic-com/storybook": "^5.0.0",
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
+    "@courthive/competition-catalogue": "^0.1.0",
     "@eslint/js": "^10.0.1",
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@storybook/addon-docs": "^10.2.17",

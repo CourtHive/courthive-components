@@ -90,7 +90,7 @@ export interface Side {
   participant?: Participant;
   /** Privacy-filtered TEAM identity on a tie-match side. */
   teamParticipant?: Participant;
-  participantFed?: string;
+  participantFed?: boolean;
   sourceMatchUp?: MatchUp;
   qualifier?: boolean;
   bye?: boolean;

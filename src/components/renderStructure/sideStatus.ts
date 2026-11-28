@@ -52,13 +52,11 @@ const SIDE_PILL_STATUSES = new Set<string>([
  * this package's `MatchUp` carries `[key: string]: any` regardless. The declaration is what makes
  * the read typed; nothing about the access changed.
  *
- * `matchUpStatusCodes` REMAINS the fallback and is deliberately retained (CA, 2026-09-22). Its
- * provenance tenant is deprecated in factory 7.0.0 §24 and will be evicted behind `schemaWriteMode`,
- * but `sideExitProvenance` is a PERSISTED field whose writes are gated on `writeNativeEnabled()` —
- * false under LEGACY mode. So this path is the only one that renders an exit for a matchUp last
- * mutated by factory 6.x, still inside this package's peer range, or by a LEGACY-mode consumer.
- * It is consulted only when provenance is absent, so it costs nothing. Do not remove it without
- * re-opening that decision.
+ * `matchUpStatusCodes` remains a READ-ONLY fallback, for records written before factory 8.0.0. The
+ * factory no longer writes or accepts that positional array, and any 8.x write removes it from the
+ * matchUps it touches, but a record no 8.x write has touched still holds it, and for a matchUp last
+ * mutated by factory 6.x it is the only place the exit is recorded. It is consulted only when
+ * provenance is absent, so it costs nothing on a current record.
  *
  * A BARE `{ sideNumber }` ELEMENT IS A RESERVED SLOT, NOT AN EXIT. It is how the engine records a
  * side whose origin is not yet known, and it is exactly the element that must not raise a badge.

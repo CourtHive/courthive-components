@@ -11,7 +11,8 @@
  * cases — played out, walkover, Other… open — so the code and the design can be compared side by
  * side rather than from memory.
  */
-import { matchUpStatusConstants, fixtures, policyConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, policyConstants } from 'tods-competition-factory';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { codesForStatus, statusCodeDisplay } from '../components/scoring/logic/statusCodes';
 import { scoreEntryCardHost, storyLog } from './helpers/scoreEntryStoryHost';
 import { user } from './helpers/trustedUser';
@@ -24,7 +25,7 @@ const { WALKOVER, CANCELLED, SUSPENDED } = matchUpStatusConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 /** The real shipped vocabulary, never a hand-mirror of it. */
-const REAL_GROUPS = fixtures.policies.POLICY_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
+const REAL_GROUPS = TEMPLATE_SCORING_USTA[POLICY_TYPE_SCORING].matchUpStatusCodes as StatusCodeGroups;
 
 export default {
   title: 'Scoring/Score Entry/Card'

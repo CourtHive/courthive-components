@@ -10,11 +10,11 @@ import {
   mocksEngine,
   tournamentEngine,
   eventConstants,
-  tieFormatConstants,
   scheduleConstants,
   matchUpStatusConstants,
   genderConstants
 } from 'tods-competition-factory';
+import { resolveTieFormat } from '@courthive/competition-catalogue';
 
 import type {
   CatalogMatchUpItem,
@@ -30,7 +30,6 @@ import {
   DEFAULT_SCHEDULE_CELL_CONFIG
 } from '../../components/schedule-page';
 
-const { DOMINANT_DUO } = tieFormatConstants;
 const { DOUBLES, TEAM } = eventConstants;
 const { BYE } = matchUpStatusConstants;
 const { MALE, FEMALE } = genderConstants;
@@ -117,7 +116,7 @@ const EVENT_PROFILES = [
   {
     eventName: 'Team',
     eventType: TEAM,
-    drawProfiles: [{ drawSize: 8, tieFormatName: DOMINANT_DUO }]
+    drawProfiles: [{ drawSize: 8, tieFormat: resolveTieFormat('DOMINANT_DUO') }]
   }
 ];
 
@@ -186,8 +185,7 @@ export function createSchedulePageSetup(): SchedulePageSetup {
   }
 
   // 3. Extract data
-  const stateResult = tournamentEngine.getState();
-  const record = stateResult?.tournamentRecord ?? tournamentRecord;
+  const record = tournamentEngine.getTournament().tournamentRecord ?? tournamentRecord;
   const tournamentId = record.tournamentId;
 
   const { matchUps: allMatchUps } = tournamentEngine.allTournamentMatchUps({

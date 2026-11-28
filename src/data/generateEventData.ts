@@ -29,7 +29,7 @@ export function generateEventData({
   autoSchedule = true,
   participantsCount,
   completionGoal,
-  tieFormatName,
+  tieFormat,
   addQualifying,
   drawSize = 4,
   automated,
@@ -41,7 +41,8 @@ export function generateEventData({
   autoSchedule?: boolean;
   participantsCount?: number;
   completionGoal?: number;
-  tieFormatName?: string;
+  /** A tieFormat object (e.g. `resolveTieFormat(name)` from `@courthive/competition-catalogue`) for a TEAM draw. */
+  tieFormat?: any;
   addQualifying?: boolean;
   drawSize?: number;
   automated?: boolean;
@@ -58,7 +59,7 @@ export function generateEventData({
     completionGoal: complete,
     participantsCount,
     matchUpFormat,
-    tieFormatName,
+    tieFormat,
     seedsCount: 8,
     automated,
     eventType,
