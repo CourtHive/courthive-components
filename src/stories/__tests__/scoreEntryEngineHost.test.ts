@@ -17,6 +17,9 @@ import { buildDrawBehind, engineMatchUp, recordOutcome, toEngineOutcome } from '
 import { tournamentEngine, matchUpStatusConstants, errorConditionConstants } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
+/** What setMatchUpStatus takes as its outcome; the raw dialog shapes below are sent as one on purpose. */
+type EngineOutcome = NonNullable<Parameters<typeof tournamentEngine.setMatchUpStatus>[0]>['outcome'];
+
 const { COMPLETED, WALKOVER, TO_BE_PLAYED, IN_PROGRESS } = matchUpStatusConstants;
 const { INVALID_SCORE, INVALID_VALUES } = errorConditionConstants;
 
@@ -81,7 +84,10 @@ describe('the engine behind the score-entry dialog', () => {
     };
 
     // The raw spread — what a host does when it has not read the engine's shape.
-    const raw: any = tournamentEngine.setMatchUpStatus({ ...ref, outcome: { ...dialogOutcome } });
+    const raw: any = tournamentEngine.setMatchUpStatus({
+      ...ref,
+      outcome: { ...dialogOutcome } as unknown as EngineOutcome
+    });
     expect(raw.error?.code).toBe(INVALID_VALUES.code);
     expect(held().matchUpStatus, 'and nothing was written').toBe(TO_BE_PLAYED);
 
@@ -99,7 +105,10 @@ describe('the engine behind the score-entry dialog', () => {
 
     // The field the dialog reports means nothing to the engine: the winner goes, the stale score stays, and
     // the matchUp reads as still being played.
-    const raw: any = tournamentEngine.setMatchUpStatus({ ...ref, outcome: { cleared: true } });
+    const raw: any = tournamentEngine.setMatchUpStatus({
+      ...ref,
+      outcome: { cleared: true } as unknown as EngineOutcome
+    });
     expect(raw.success).toBe(true);
     expect(held().matchUpStatus, 'a stale score left standing as in progress').toBe(IN_PROGRESS);
     expect(held().winningSide).toBeUndefined();
